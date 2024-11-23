@@ -1,0 +1,30 @@
+name: "s3-command"
+
+on:
+  workflow_call:
+    inputs:
+      aws_region:
+        required: false
+        type: string
+        default: "us-east-1"
+
+jobs:
+  authenticate:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout current branch
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials for Assume Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.aws_account_id }}:role/${{ secrets.assumable_role_name }}
+          role-session-name: github-actions-session
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: S3 Command
+        run: |
+          aws s3 ls
